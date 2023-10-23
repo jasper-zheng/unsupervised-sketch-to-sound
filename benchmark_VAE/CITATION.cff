@@ -1,0 +1,44 @@
+cff-version: 1.2.0
+date-released: 2022-06
+message: "If you use this software, please cite it as below."
+title: "Pythae: Unifying Generative Autoencoders in Python -- A Benchmarking Use Case"
+url: "https://github.com/clementchadebec/benchmark_VAE"
+authors:
+- family-names: Chadebec
+  given-names: Clément
+- family-names: Vincent
+  given-names: Louis J.
+- family-names: Allassonnière
+  given-names: Stéphanie
+preferred-citation:
+  type: conference-paper
+  title: "Pythae: Unifying Generative Autoencoders in Python -- A Benchmarking Use Case"
+  authors:
+  - family-names: Chadebec
+    given-names: Clément
+  - family-names: Vincent
+    given-names: Louis J.
+  - family-names: Allassonnière
+    given-names: Stéphanie
+  collection-title: Advances in Neural Information Processing Systems 35
+  collection-type: proceedings
+  editors:
+    - family-names: Koyejo
+      given-names: S.
+    - family-names: Mohamed
+      given-names: S.
+    - family-names: Agarwal
+      given-names: A.
+    - family-names: Belgrave
+      given-names: D.
+    - family-names: Cho
+      given-names: K.
+    - family-names: Oh
+      given-names: A.
+  start: 21575
+  end: 21589
+  year: 2022
+  publisher:
+    name: Curran Associates, Inc.
+  url: "https://arxiv.org/abs/2206.08309"
+  address: "Online"

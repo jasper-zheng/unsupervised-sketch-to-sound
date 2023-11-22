@@ -1,1 +1,0 @@
-{"name": "VQVAEConfig", "input_dim": [1, 112, 112], "latent_dim": 64, "uses_default_encoder": false, "uses_default_decoder": false, "commitment_loss_factor": 0.25, "quantization_loss_factor": 1.0, "num_embeddings": 256, "use_ema": true, "decay": 0.99}

@@ -226,7 +226,7 @@ class Encoder_ResNet_VAE_MNIST(BaseEncoder):
     def __init__(self, args: BaseAEConfig):
         BaseEncoder.__init__(self)
 
-        self.input_dim = (1, 28, 28)
+        self.input_dim = (1, 56, 56)
         self.latent_dim = args.latent_dim
         self.n_channels = 1
 
@@ -235,6 +235,8 @@ class Encoder_ResNet_VAE_MNIST(BaseEncoder):
         layers.append(nn.Sequential(nn.Conv2d(self.n_channels, 64, 4, 2, padding=1)))
 
         layers.append(nn.Sequential(nn.Conv2d(64, 128, 4, 2, padding=1)))
+
+        layers.append(nn.Sequential(nn.Conv2d(128, 128, 4, 2, padding=1)))
 
         layers.append(nn.Sequential(nn.Conv2d(128, 128, 3, 2, padding=1)))
 
@@ -513,29 +515,30 @@ class Encoder_ResNet_VQVAE_MNIST(BaseEncoder):
     def __init__(self, args: BaseAEConfig):
         BaseEncoder.__init__(self)
 
-        self.input_dim = (1, 28, 28)
+        self.input_dim = (1, 112, 112)
         self.latent_dim = args.latent_dim
         self.n_channels = 1
 
         layers = nn.ModuleList()
 
-        layers.append(nn.Sequential(nn.Conv2d(self.n_channels, 64, 4, 2, padding=1)))
+        layers.append(nn.Sequential(nn.Conv2d(self.n_channels, 128, 4, 2, padding=1)))
+        layers.append(nn.Sequential(nn.Conv2d(128, 128, 4, 2, padding=1)))
+        layers.append(nn.Sequential(nn.Conv2d(128, 128, 4, 2, padding=1)))
+        layers.append(nn.Sequential(nn.Conv2d(128, 128, 4, 2, padding=1)))
 
-        layers.append(nn.Sequential(nn.Conv2d(64, 128, 4, 2, padding=1)))
-
-        layers.append(nn.Sequential(nn.Conv2d(128, 128, 3, 2, padding=1)))
+        layers.append(nn.Sequential(nn.Conv2d(128, 256, 3, 2, padding=1)))
 
         layers.append(
             nn.Sequential(
-                ResBlock(in_channels=128, out_channels=32),
-                ResBlock(in_channels=128, out_channels=32),
+                ResBlock(in_channels=256, out_channels=32),
+                ResBlock(in_channels=256, out_channels=32),
             )
         )
 
         self.layers = layers
         self.depth = len(layers)
 
-        self.pre_qantized = nn.Conv2d(128, self.latent_dim, 1, 1)
+        self.pre_qantized = nn.Conv2d(256, self.latent_dim, 1, 1)
 
     def forward(self, x: torch.Tensor, output_layer_levels: List[int] = None):
         """Forward method
@@ -808,27 +811,41 @@ class Decoder_ResNet_VQVAE_MNIST(BaseDecoder):
     def __init__(self, args: BaseAEConfig):
         BaseDecoder.__init__(self)
 
-        self.input_dim = (1, 28, 28)
+        self.input_dim = (1, 112, 112)
         self.latent_dim = args.latent_dim
         self.n_channels = 1
 
         layers = nn.ModuleList()
 
-        layers.append(nn.ConvTranspose2d(self.latent_dim, 128, 1, 1))
+        layers.append(nn.ConvTranspose2d(self.latent_dim, 256, 1, 1))
 
-        layers.append(nn.ConvTranspose2d(128, 128, 3, 2, padding=1))
+        layers.append(nn.ConvTranspose2d(256, 256, 3, 2, padding=1))
 
         layers.append(
             nn.Sequential(
-                ResBlock(in_channels=128, out_channels=32),
-                ResBlock(in_channels=128, out_channels=32),
+                ResBlock(in_channels=256, out_channels=32),
+                ResBlock(in_channels=256, out_channels=32),
                 nn.ReLU(),
             )
         )
 
         layers.append(
             nn.Sequential(
-                nn.ConvTranspose2d(128, 64, 3, 2, padding=1, output_padding=1),
+                nn.ConvTranspose2d(256, 128, 3, 2, padding=1, output_padding=1),
+                nn.ReLU(),
+            )
+        )
+
+        layers.append(
+            nn.Sequential(
+                nn.ConvTranspose2d(128, 128, 3, 2, padding=1, output_padding=1),
+                nn.ReLU(),
+            )
+        )
+
+        layers.append(
+            nn.Sequential(
+                nn.ConvTranspose2d(128, 128, 3, 2, padding=1, output_padding=1),
                 nn.ReLU(),
             )
         )
@@ -836,7 +853,7 @@ class Decoder_ResNet_VQVAE_MNIST(BaseDecoder):
         layers.append(
             nn.Sequential(
                 nn.ConvTranspose2d(
-                    64, self.n_channels, 3, 2, padding=1, output_padding=1
+                    128, self.n_channels, 3, 2, padding=1, output_padding=1
                 ),
                 nn.Sigmoid(),
             )

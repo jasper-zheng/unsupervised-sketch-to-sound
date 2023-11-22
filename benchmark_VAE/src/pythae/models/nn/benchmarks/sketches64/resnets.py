@@ -517,20 +517,22 @@ class Encoder_ResNet_VQVAE_MNIST(BaseEncoder):
     def __init__(self, args: BaseAEConfig):
         BaseEncoder.__init__(self)
 
-        self.input_dim = (1, 64, 64)
+        self.input_dim = (1, 128, 128)
         self.latent_dim = args.latent_dim
         self.n_channels = 1
 
         layers = nn.ModuleList()
 
-        layers.append(nn.Sequential(nn.Conv2d(self.n_channels, 32, 4, 2, padding=1)))
-
+        layers.append(nn.Sequential(nn.Conv2d(self.n_channels, 16, 4, 2, padding=1))) 
+        #64
+        layers.append(nn.Sequential(nn.Conv2d(16, 32, 4, 2, padding=1)))
+        #32
         layers.append(nn.Sequential(nn.Conv2d(32, 64, 4, 2, padding=1)))
-        
+        #16
         layers.append(nn.Sequential(nn.Conv2d(64, 128, 4, 2, padding=1)))
-
+        #8
         layers.append(nn.Sequential(nn.Conv2d(128, 128, 3, 2, padding=1)))
-
+        #4
         layers.append(
             nn.Sequential(
                 ResBlock(in_channels=128, out_channels=32),
@@ -818,7 +820,8 @@ class Decoder_ResNet_VQVAE_MNIST(BaseDecoder):
     def __init__(self, args: BaseAEConfig):
         BaseDecoder.__init__(self)
 
-        self.input_dim = (1, 28, 28)
+        # self.input_dim = (1, 28, 28)
+        self.input_dim = args.input_dim
         self.latent_dim = args.latent_dim
         self.n_channels = 1
 
@@ -846,6 +849,13 @@ class Decoder_ResNet_VQVAE_MNIST(BaseDecoder):
         layers.append(
             nn.Sequential(
                 nn.ConvTranspose2d(64, 32, 3, 2, padding=1, output_padding=1),
+                nn.ReLU(),
+            )
+        )
+
+        layers.append(
+            nn.Sequential(
+                nn.ConvTranspose2d(32, 32, 3, 2, padding=1, output_padding=1),
                 nn.ReLU(),
             )
         )

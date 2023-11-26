@@ -25,14 +25,16 @@ class Processor(object):
 
         ######## Calling the backend model ##########
         if input_img is not None:
-            output_img = self.model_backend(input_img)
+            z = self.model_backend(input_img)
+            output_str = z[0].tolist()
+            self.to_output.append(output_str)
 
         ######## Calling the backend model ##########
 
         # output_str is a base64 string in ascii
-            output_str = pil_image_to_base64(output_img, quality = self.quality)
+            # output_str = pil_image_to_base64(output_img, quality = self.quality)
         # convert eh base64 string in ascii to base64 string in _bytes_
-            self.to_output.append(output_str)
+            
 
     def keep_processing(self):
         while True:
@@ -44,7 +46,8 @@ class Processor(object):
 
     def get_frame(self):
         while not self.to_output:
-            sleep(0.05)
+            # sleep(0.05)
+            return 'not ready'
         return self.to_output.pop(0)
 
 class MyModel(object):

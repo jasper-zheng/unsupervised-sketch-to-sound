@@ -8,10 +8,12 @@ $(document).ready(function () {
   
   const FRAME_SIZE    = 448   // input frame size
   const PAD_MAX_WIDTH = 1792
-  const LINE_WIDTH    = 3
+  const LINE_WIDTH    = 4
   let crop_factor     = 0.2     // 0: no crop, 1: crop everything
   const input_quality = 0.75  // quality from client to server
-  const FRAME_RATE    = 1000   // ms per frame
+  const FRAME_RATE    = 100   // ms per frame
+  const LINE_MAX_LEN  = 80
+  const LATENT_DIM    = 32
 
   const SCALE = FRAME_SIZE/PAD_MAX_WIDTH
   let namespace = "/demo";
@@ -40,7 +42,17 @@ let cur_input = 0  // 0: webcam, 1:file
 let file_is_init = false
 let is_pause = false
 
-output_canvas = document.getElementById('outputCanvas');
+latent = document.getElementById('latent');
+latent_display = document.getElementById('latent_display');
+
+let latentBlocks = []
+for (let i = 0; i < LATENT_DIM; i++){
+    let latentBlock = document.createElement("div");
+    latentBlock.setAttribute("class", "latentBlocks");
+    latent_display.appendChild(latentBlock)
+    latentBlocks.push(latentBlock)
+}
+    
 var localMediaStream = null;
 
 
@@ -52,8 +64,20 @@ console.log('Connected!');
 });
 
 socket.on('processed_frame',function(data){
-  output_canvas.setAttribute('src', data.image_data);
-});
+  // output_canvas.setAttribute('src', data.latent_code);
+    // latent.innerHTML = data.latent_code
+    for (let i = 0; i < LATENT_DIM; i++){
+        
+        // let w = latentBlocks[i].style.width
+        // console.log(w)
+        let w = data.latent_code[i]
+        latentBlocks[i].style.width = 100 + 33*w + 'px'
+        
+    }
+    // console.log(data.latent_code)
+    // let latents = data.latent_code.split(",").map(Number);
+    // latent.innerHTML = latents
+})
 
 
 
@@ -79,13 +103,16 @@ setInterval(function () {
     connection.send('event', "1");
     // connection.sendData(12345);
     count++;
-}, 50);
+}, 20);
 
 const canvas = document.querySelector("#inputCanvas");
 canvas.width = FRAME_SIZE;
 canvas.height = FRAME_SIZE;
 const ctx = canvas.getContext('2d');
 ctx.lineWidth = LINE_WIDTH;
+ctx.fillStyle = "black";
+ctx.strokeStyle = "white";
+ctx.fillRect(0, 0, FRAME_SIZE, FRAME_SIZE);
 let isPainting = false;
 let startX;
 let startY;
@@ -171,7 +198,8 @@ function drawLines(){
     // var ss=parseInt(s);
     // if(s>points.length-2){return;}
     if (lines.length == 0){return;}
-    ctx.clearRect(0,0,FRAME_SIZE,FRAME_SIZE);
+    // ctx.clearRect(0,0,FRAME_SIZE,FRAME_SIZE);
+    ctx.fillRect(0, 0, FRAME_SIZE, FRAME_SIZE);
     for (var i=0; i<lines.length; i++){
         let thisLine = lines[i]
         if (lines[i].length == 1){
@@ -187,7 +215,7 @@ function drawLines(){
         }
     }
     
-    if (s >=20){
+    if (s >=LINE_MAX_LEN){
         if (lines[0].length>1){
             lines[0].shift()
         } else {
@@ -237,6 +265,7 @@ function sendFrame() {
     socket.emit('input_frame', dataURL);
 
 }
+
 
 setInterval(function () {
   sendFrame();

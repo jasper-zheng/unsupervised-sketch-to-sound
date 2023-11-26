@@ -45,7 +45,7 @@ void loop() {
   // WebSerial.send("event-from-arduino", 144);
   // Serial.println("[\"event-from-arduino\",144]");
   // WebSerial.check();
-  delay(25);
+  delay(10);
   
 
   trillSquare.requestRawData();
@@ -117,25 +117,8 @@ void printRawData(Trill & trill) {
   if(Serial.available() > 0){
     receivedStr = Serial.readStringUntil('\n');
     receivedStr.trim();
-    // command = Serial.readStringUntil('\n');
-    // command = Serial.read();
-    // command.trim();
-    // Serial.print(command);
-    // Serial.println(0);
-
-    // Serial.print("[\"event-from-arduino\",");
-    // Serial.print(receivedStr);
-    // Serial.println("]");
-
-
 
     if (receivedStr.equals("[\"event\",1]")){
-      // Serial.print("[\"event-from-arduino\",");
-      // Serial.print("hi");
-      // Serial.println("]");
-      
-      
-      
 
       if (v_touch_num==h_touch_num){
         for (int i = 0; i < v_touch_num; i++){

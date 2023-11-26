@@ -35,6 +35,9 @@ def index():
 def process_frame(input):
     input = input.split(",")[1]
     processor.enqueue_input(input)
+    # out_data = str(processor.get_frame(), "utf-8")
+    out_data = processor.get_frame()
+    emit('processed_frame', {'latent_code': out_data}, namespace='/demo')
     # image_data = "data:image/jpeg;base64," + str(processor.get_frame(), "utf-8")
     # emit('processed_frame', {'image_data': image_data}, namespace='/demo')
 

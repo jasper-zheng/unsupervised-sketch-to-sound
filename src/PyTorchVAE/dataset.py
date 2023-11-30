@@ -13,6 +13,7 @@ import zipfile
 from torchvision import transforms, datasets
 # from torchvision.transforms import v2
 from torchvision.transforms import InterpolationMode
+from torchvision.transforms import GaussianBlur
 
 from torch.utils.data import Dataset
 
@@ -44,11 +45,12 @@ class MyCelebA(CelebA):
 class SketchDataset(Dataset):
     def __init__(self, img_data_x):
         self.img_data_x = img_data_x
+        self.blur = GaussianBlur(3, sigma=1)
 
         self.rf = transforms.RandomHorizontalFlip()
         self.rv = transforms.RandomVerticalFlip()
         self.rr = transforms.RandomRotation(degrees=(0, 180),interpolation=InterpolationMode.BILINEAR)
-        self.ra = transforms.RandomAffine(degrees=0, translate=(0.1, 0.1))
+        self.ra = transforms.RandomAffine(degrees=0, translate=(0.3, 0.3))
 
     def __len__(self):
         return len(self.img_data_x)
@@ -59,7 +61,9 @@ class SketchDataset(Dataset):
         x = self.rv(x)
         x = self.rr(x)
         x = self.ra(x)
-        # return dict(data=x)
+        
+        x = self.blur(x)
+        
         return x, 0.0
 
 class OxfordPets(Dataset):

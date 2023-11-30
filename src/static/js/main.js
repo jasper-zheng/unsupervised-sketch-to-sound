@@ -13,7 +13,7 @@ $(document).ready(function () {
   const input_quality = 0.75  // quality from client to server
   const FRAME_RATE    = 100   // ms per frame
   const LINE_MAX_LEN  = 80
-  const LATENT_DIM    = 32
+  const LATENT_DIM    = 64
 
   const SCALE = FRAME_SIZE/PAD_MAX_WIDTH
   let namespace = "/demo";

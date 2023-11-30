@@ -94,21 +94,27 @@ class VAEXperiment(pl.LightningModule):
 
         
     def on_validation_end(self) -> None:
-        if self.current_epoch % 50 == 0:
+        if self.current_epoch % 25 == 0:
             self.sample_images()
         
     def sample_images(self):
         # Get sample reconstruction image            
-        test_input, test_label = next(iter(self.trainer.datamodule.test_dataloader()))
-        test_input = test_input.to(self.curr_device)
-        test_label = test_label.to(self.curr_device)
-        # if self.current_epoch == 0:
-        #     self.test_input, self.test_label = next(iter(self.trainer.datamodule.test_dataloader()))
-        #     self.test_input = self.test_input.to(self.curr_device)
-        #     self.test_label = self.test_label.to(self.curr_device)
+        # test_input, test_label = next(iter(self.trainer.datamodule.test_dataloader()))
+        # test_input = test_input.to(self.curr_device)
+        # test_label = test_label.to(self.curr_device)
+        if self.current_epoch == 0:
+            self.test_input, self.test_label = next(iter(self.trainer.datamodule.test_dataloader()))
+            self.test_input = self.test_input.to(self.curr_device)
+            self.test_label = self.test_label.to(self.curr_device)
+            
+            vutils.save_image(self.test_input,
+                          os.path.join(self.logger.log_dir , 
+                                       f"recons_{self.logger.name}_Epoch_{self.current_epoch}.png"),
+                          normalize=True,
+                          nrow=12)
 
 #         test_input, test_label = batch
-        recons = self.model.generate(test_input, labels = test_label)
+        recons = self.model.generate(self.test_input, labels = self.test_label)
         vutils.save_image(recons.data,
                           os.path.join(self.logger.log_dir , 
                                        "Reconstructions", 
@@ -119,7 +125,7 @@ class VAEXperiment(pl.LightningModule):
         try:
             samples = self.model.sample(144,
                                         self.curr_device,
-                                        labels = test_label)
+                                        labels = self.test_label)
             vutils.save_image(samples.cpu().data,
                               os.path.join(self.logger.log_dir , 
                                            "Samples",      

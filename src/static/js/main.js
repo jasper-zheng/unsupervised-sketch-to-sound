@@ -12,8 +12,8 @@ $(document).ready(function () {
   let crop_factor     = 0.2     // 0: no crop, 1: crop everything
   const input_quality = 0.75  // quality from client to server
   const FRAME_RATE    = 100   // ms per frame
-  const LINE_MAX_LEN  = 80
-  const LATENT_DIM    = 64
+  const LINE_MAX_LEN  = 300
+  const LATENT_DIM    = 32
 
   const SCALE = FRAME_SIZE/PAD_MAX_WIDTH
   let namespace = "/demo";
@@ -130,15 +130,24 @@ let points = [];
 let s=0;
     
 let packet = []
+
+let clear_speed = 0;
+let point_xy = ""
 // React to incoming events
 connection.on('event-from-arduino', function(data) {
-    // console.log('Received event "event-from-arduino" with parameter ' + data)
-    packets = data.split("_")
+
+    // ################## add
     
-    // for (int i = 0; i < packest.length-1; i ++){
-    //     packet = packets[i].split(',')
-    // }
-        // points.append([int(x),int(y)])
+    let str_messages = data.split(":")
+    clear_speed = parseInt(str_messages[0])
+    point_xy = str_messages[1]
+    
+    
+    packets = point_xy.split("_")
+
+    // ##################
+
+    
     if (packets.length>1 && !isPainting){
         packet = packets[0].split(',')
         isPainting = true;
@@ -152,14 +161,11 @@ connection.on('event-from-arduino', function(data) {
         }
         startX = startX*SCALE
         startY = FRAME_SIZE - startY*SCALE
-        // let points.length = [];
         let line = []
         let points = {x:startX,y:startY}
         line.push(points)
         lines.push(line)
         s+=1;
-        // console.log(points.length)
-        // ctx.moveTo(startX,startY);
     } else if (packets.length>1 && isPainting){
         packet = packets[0].split(',')
         startX = parseInt(packet[0])
@@ -176,8 +182,6 @@ connection.on('event-from-arduino', function(data) {
         let points = {x:startX, y:startY}
         lines[lines.length-1].push(points)
         s+=1;
-        // ctx.lineTo(startX,startY);
-        // ctx.stroke();
         
     } else if (packets.length==1 && isPainting){
         isPainting = false;
@@ -186,19 +190,33 @@ connection.on('event-from-arduino', function(data) {
     
 });
 
-animate();
+
+
+
+// #####################
+
+clear_speed_text = document.getElementById('clear_speed');
     
-function animate() {
-  requestAnimationFrame(animate);
+function clamp(number, min, max) {
+  return Math.max(min, Math.min(number, max));
+}
+function scale(number, inMin, inMax, outMin, outMax) {
+    return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+}
+    
+function animate(timestamp) {
+  
   drawLines();
+  removeLines();
+  removeMaxLines();
+    
+  requestAnimationFrame(animate);
 }
 
+requestAnimationFrame(animate);
+
 function drawLines(){
-    // s+=0.10;   
-    // var ss=parseInt(s);
-    // if(s>points.length-2){return;}
     if (lines.length == 0){return;}
-    // ctx.clearRect(0,0,FRAME_SIZE,FRAME_SIZE);
     ctx.fillRect(0, 0, FRAME_SIZE, FRAME_SIZE);
     for (var i=0; i<lines.length; i++){
         let thisLine = lines[i]
@@ -214,17 +232,87 @@ function drawLines(){
             ctx.closePath();   
         }
     }
+}
+
+let clear_count = 0;
+let clamp_speed = 0;
+let speed = 0;
+let clear_amount = 0;
+let wait_amount = 0;
     
+function removeLines(){
+    
+    clamp_speed = clamp(clear_speed, 0, 800);
+    speed = parseInt(scale(clamp_speed, 0, 1000, 0, 20));
+    clear_speed_text.innerHTML = s + " " + speed
+    if (speed > 11){
+        clear_amount = speed - 11;
+        if (s > clear_amount){
+            if (lines[0].length>clear_amount){
+                lines[0].splice(0, clear_amount);
+                s -= clear_amount;
+            } else {
+                if (lines.length > 1){
+                    s -= lines[0].length;
+                    lines.shift();
+                }
+            }
+        }
+    } else if (speed > 10){ // speed == 11
+        wait_amount = 3;
+        clear_amount = 2;
+        if (clear_count >= wait_amount){
+            clear_count = 0;
+            if (s >= 1){
+                if (lines[0].length>clear_amount){
+                    lines[0].splice(0, clear_amount);
+                    s -= clear_amount;
+                } else {
+                    if (lines.length > 1){
+                        s -= lines[0].length;
+                        lines.shift();
+                    }
+                }
+            }
+        } else {
+            clear_count += 1;
+        }
+    
+    } else if (speed > 0) {
+        wait_amount = 11 - speed;
+        if (clear_count >= wait_amount){
+            clear_count = 0;
+            if (s >= 1){
+                if (lines[0].length>1){
+                    lines[0].shift()
+                } else {
+                    if (lines.length > 1){
+                        lines.shift()
+                    }
+                }
+                s -= 1;
+            }
+        } else {
+            clear_count += 1;
+        }
+    }
+}
+    
+function removeMaxLines(){
     if (s >=LINE_MAX_LEN){
         if (lines[0].length>1){
             lines[0].shift()
         } else {
-            lines.shift()
+            if (lines.length > 1){
+                lines.shift()
+            }
         }
         s -= 1;
     }
 }
-    
+
+
+// #####################
 
 ctx.beginPath();
 ctx.moveTo(10,10);

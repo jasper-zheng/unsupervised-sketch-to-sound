@@ -44,7 +44,8 @@ let is_pause = false
 
 latent = document.getElementById('latent');
 latent_display = document.getElementById('latent_display');
-
+is_recording = document.getElementById('is_recording');
+    
 let latentBlocks = []
 for (let i = 0; i < LATENT_DIM; i++){
     let latentBlock = document.createElement("div");
@@ -133,6 +134,7 @@ let packet = []
 
 let clear_speed = 0;
 let point_xy = ""
+let recording = 0;
 // React to incoming events
 connection.on('event-from-arduino', function(data) {
 
@@ -141,7 +143,9 @@ connection.on('event-from-arduino', function(data) {
     let str_messages = data.split(":")
     clear_speed = parseInt(str_messages[0])
     point_xy = str_messages[1]
-    
+    recording = parseInt(str_messages[2])
+
+    is_recording.innerHTML = recording ? 'recording' : ' - '
     
     packets = point_xy.split("_")
 

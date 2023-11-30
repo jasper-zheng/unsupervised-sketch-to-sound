@@ -17,7 +17,7 @@ import yaml
 from pythonosc import udp_client
 # from training.training_loop import Preprocess
 
-network_pkl = '/home/jasper/Documents/PhD/Y0/vae_sketch_to_sound/src/PyTorchVAE/logs/DFCVAE/version_6/checkpoints/last.ckpt'
+network_pkl = '/home/jasper/Documents/PhD/Y0/vae_sketch_to_sound/src/PyTorchVAE/logs/DFCVAE/version_8/checkpoints/last.ckpt'
 config_file = '/home/jasper/Documents/PhD/Y0/vae_sketch_to_sound/src/PyTorchVAE/configs/dfc_vae.yaml'
 
 ip="192.168.0.13"

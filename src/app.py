@@ -41,6 +41,10 @@ def process_frame(input):
     # image_data = "data:image/jpeg;base64," + str(processor.get_frame(), "utf-8")
     # emit('processed_frame', {'image_data': image_data}, namespace='/demo')
 
+@socketio.on('recording', namespace='/demo')
+def recording(is_recording):
+    processor.send_osc()
+
 # @socketio.on('config_update', namespace='/demo')
 # def update_configs(name, input):
 #     # print(input)

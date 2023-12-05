@@ -14,25 +14,24 @@ from utils import base64_to_pil_image, pil_image_to_base64
 from PIL import Image
 import yaml
 
-from pythonosc import udp_client
+# from pythonosc import udp_client
 # from training.training_loop import Preprocess
 
 network_pkl = '/home/jasper/Documents/PhD/Y0/vae_sketch_to_sound/src/PyTorchVAE/logs/DFCVAE/version_8/checkpoints/last.ckpt'
 config_file = '/home/jasper/Documents/PhD/Y0/vae_sketch_to_sound/src/PyTorchVAE/configs/dfc_vae.yaml'
 
-ip="192.168.0.13"
-port=6448
+
 
 class Pipeline(torch.nn.Module):
 
-   def __init__(self, in_size = 448, out_size = 64):
+   def __init__(self, in_size = 256, out_size = 64):
        super().__init__()
        self.out_size = out_size
        self.in_size = in_size
        device = torch.device('cuda')
        self.device = device
        self.convert_tensor = ToTensor()
-       self.client = udp_client.SimpleUDPClient(ip, port)
+       # self.client = udp_client.SimpleUDPClient(ip, port)
 
        with open(config_file, 'r') as file:
            try:
@@ -66,6 +65,7 @@ class Pipeline(torch.nn.Module):
        # z = self.trained_model.embed(img_tensor).detach().cpu()
        mu, log_var = self.trained_model.encode(img_tensor)
        mu = mu.detach().cpu()
+       # self.z = mu
        return mu
 
 
@@ -90,12 +90,12 @@ class Pipeline(torch.nn.Module):
        
        mu = mu.detach().cpu()
 
-       self.send_osc(mu)
+       # self.send_osc(mu)
        
        return mu
 
-   def send_osc(self, z):
-       self.client.send_message("/wek/inputs", z[0].tolist())
+   # def send_osc(self, z):
+   #     self.client.send_message("/wek/inputs", z[0].tolist())
 
 
 

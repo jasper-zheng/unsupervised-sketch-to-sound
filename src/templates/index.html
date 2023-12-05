@@ -4,7 +4,7 @@
       <meta charset="utf-8">
       <title>Live</title>
       <style>
-        body {background-color: #AAAAAA; font-family: Arial; font-size: 13px; cursor: default;}
+        body {background-color: black; font-family: Arial; font-size: 13px; cursor: default;}
         #videoElement {display: none;}
         #canvasElement {border: 1px solid black;}
         #photo {border: 1px solid black;}
@@ -21,11 +21,11 @@
         #clusterNum {color: #FFB103; background-color: #191919; margin-top: 2px; margin-left: 3px; border: none; font-size: 14px}
 
         .mainTable td{vertical-align: top; border: none; }
-        .mainTable {width: 1672px; border-spacing:2px}
+        .mainTable {width: 1072px; border-spacing:2px}
 
         .greyMask {filter: grayscale(100%);}
 
-        .displays {width: 937px; height: 512px; position: relative; margin-bottom: 2px}
+        .displays {width: 487px; height: 512px; position: relative; margin-bottom: 2px}
         .canvasContainer {width: 355px; height: 301px; background-color: #191919; position: absolute; bottom: 0; border-radius: 4px;}
         .inputBtnDisact {outline-style: solid; outline-width: 1px; outline-color: #AAAAAA; color: #8F8F8F;  z-index: 3}
         .inputBtnDisact svg {stroke: #8F8F8F }
@@ -69,39 +69,14 @@
         .textCheckBoxContainer {width: 192px; margin: 9px 3px; position: relative;}
         .textCheckBoxContainer input {position: absolute;opacity: 0;cursor: pointer;height: 0;width: 0;}
           .latentBlocks{height:12px;width:100px;background-color: white;margin-top:5px}
+          .drawPad{}
       </style>
     </head>
     <body>
-      <div class="displays">
-<!--         <div class="canvasContainer">
-          <video autoplay="true" id="videoElement" ></video>
-          <canvas id="inputCanvas"></canvas>
-          <button class="inputBtn inputBtnAct" id="webcamBtn" style="border-radius: 4px 0px 0px 0px; height: 150px; ">
-            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1zM4 5h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7c0-1.1.9-2 2-2z"/></svg>
-            <div class="btnText">Webcam</div>
-          </button><br>
-          <button class="inputBtn inputBtnDisact" id="fileBtn" style="border-radius: 0px 0px 0px 4px; height: 150px; margin-top:1px">
-            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M20.4 14.5L16 10 4 20"/></svg>
-            <div class="btnText">File</div>
-          </button>
-          <button type="button" name="button" id="pauseBtn" class="orangeBtnInvert" style="width:72px;height:19px">Pause</button>
-          <div id="fileUploadContainer" class="orangeBtnInvert" style="width:102px;height:16px">
-            <label for="fileUpload">
-                Choose File
-            </label>
-            <input type="file" id="fileUpload" style="display:none">
-          </div>
-        </div> -->
-        <!-- <button id="button">connect</button> -->
-          
-        <!-- <img id="outputCanvas"></img> -->
-            <canvas id="inputCanvas"></canvas>
-            <div id="latent">hi</div>
-            <div id="clear_speed"></div>
-            <div id="is_recording"></div>
-            <div id="latent_display"></div>
-      </div>
-
+      <canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><br>
+      <canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><br>
+      <canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas><canvas class="drawPad"></canvas>
+        
       
 
       <!-- <button type="button" id="resetAll">Reset All</button> -->

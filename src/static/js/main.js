@@ -6,31 +6,24 @@ $(document).ready(function () {
     // logOutgoingSerialData: true
   });
   
-  const FRAME_SIZE    = 448   // input frame size
+  const FRAME_SIZE    = 256   // input frame size
   const PAD_MAX_WIDTH = 1792
-  const LINE_WIDTH    = 4
+  const LINE_WIDTH    = 1
   let crop_factor     = 0.2     // 0: no crop, 1: crop everything
-  const input_quality = 0.75  // quality from client to server
+  const input_quality = 0.5  // quality from client to server
   const FRAME_RATE    = 100   // ms per frame
   const LINE_MAX_LEN  = 300
   const LATENT_DIM    = 32
+  const DISPLAY_LATENT= true;
+  const PAD_SENSITIVE = 4;
 
   const SCALE = FRAME_SIZE/PAD_MAX_WIDTH
   let namespace = "/demo";
-  // let video = document.querySelector("#videoElement");
-  // let canvas = document.querySelector("#inputCanvas");
-  // canvas.width = FRAME_SIZE_Y;
-  // canvas.height = FRAME_SIZE;
-  // let ctx = canvas.getContext('2d');
-  // ctx.translate(FRAME_SIZE_Y,0);
-  // ctx.scale(-1,1);
-  var constraints = {
-    audio: false,
-    video: {
-      width: FRAME_SIZE,
-      height: FRAME_SIZE,
-    }
-  };
+    
+
+const monitor = window.open("", "", "width=300,height=600");
+monitor.document.write('<html><head><style>body{background-color: #AAAAAA;font-family: Arial; font-size: 20px;}.latentBlocks{height:5px;width:100px;background-color: black;margin-top:3px}</style></head><body><canvas id="inputCanvas"></canvas><div id="clear_speed"></div><div id="is_recording">playing</div><button id="playSwitch">Run</button><div id="latent_display"></div></body></html>');
+
 
 let layer_names = document.querySelector("#layerNames");
 let initialisation = false;
@@ -42,9 +35,9 @@ let cur_input = 0  // 0: webcam, 1:file
 let file_is_init = false
 let is_pause = false
 
-latent = document.getElementById('latent');
-latent_display = document.getElementById('latent_display');
-is_recording = document.getElementById('is_recording');
+latent = monitor.document.getElementById('latent');
+latent_display = monitor.document.getElementById('latent_display');
+is_recording = monitor.document.getElementById('is_recording');
     
 let latentBlocks = []
 for (let i = 0; i < LATENT_DIM; i++){
@@ -53,8 +46,6 @@ for (let i = 0; i < LATENT_DIM; i++){
     latent_display.appendChild(latentBlock)
     latentBlocks.push(latentBlock)
 }
-    
-var localMediaStream = null;
 
 
 var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
@@ -65,34 +56,15 @@ console.log('Connected!');
 });
 
 socket.on('processed_frame',function(data){
-  // output_canvas.setAttribute('src', data.latent_code);
-    // latent.innerHTML = data.latent_code
-    for (let i = 0; i < LATENT_DIM; i++){
-        
-        // let w = latentBlocks[i].style.width
-        // console.log(w)
-        let w = data.latent_code[i]
-        latentBlocks[i].style.width = 100 + 33*w + 'px'
-        
+    if (DISPLAY_LATENT){
+        for (let i = 0; i < LATENT_DIM; i++){
+            let w = data.latent_code[i]
+            latentBlocks[i].style.width = 100 + 33*w + 'px'
+            
+        }
     }
-    // console.log(data.latent_code)
-    // let latents = data.latent_code.split(",").map(Number);
-    // latent.innerHTML = latents
 })
 
-
-
-
-
-
-
-
-// setInterval(function () {
-//     if (!isPainting){
-//         return
-//     }
-    
-// }, 25);
 
 
 
@@ -106,7 +78,7 @@ setInterval(function () {
     count++;
 }, 20);
 
-const canvas = document.querySelector("#inputCanvas");
+const canvas = monitor.document.querySelector("#inputCanvas");
 canvas.width = FRAME_SIZE;
 canvas.height = FRAME_SIZE;
 const ctx = canvas.getContext('2d');
@@ -132,9 +104,20 @@ let s=0;
     
 let packet = []
 
-let clear_speed = 0;
+let clear_speed = 512;
 let point_xy = ""
 let recording = 0;
+let playing = true
+    
+let last_x = 0;
+let last_y = 0;
+
+play_switch = monitor.document.getElementById('playSwitch');
+    
+play_switch.addEventListener('click',(e)=>{
+    playing = !playing
+})
+
 // React to incoming events
 connection.on('event-from-arduino', function(data) {
 
@@ -144,8 +127,6 @@ connection.on('event-from-arduino', function(data) {
     clear_speed = parseInt(str_messages[0])
     point_xy = str_messages[1]
     recording = parseInt(str_messages[2])
-
-    is_recording.innerHTML = recording ? 'recording' : ' - '
     
     packets = point_xy.split("_")
 
@@ -165,6 +146,12 @@ connection.on('event-from-arduino', function(data) {
         }
         startX = startX*SCALE
         startY = FRAME_SIZE - startY*SCALE
+
+        let cal_x = parseInt(startX/PAD_SENSITIVE)
+        let cal_y = parseInt(startY/PAD_SENSITIVE)
+        last_x = cal_x
+        last_y = cal_y
+        
         let line = []
         let points = {x:startX,y:startY}
         line.push(points)
@@ -182,15 +169,22 @@ connection.on('event-from-arduino', function(data) {
         }
         startX = startX*SCALE
         startY = FRAME_SIZE - startY*SCALE
-        
-        let points = {x:startX, y:startY}
-        lines[lines.length-1].push(points)
-        s+=1;
+
+        let cal_x = parseInt(startX/PAD_SENSITIVE)
+        let cal_y = parseInt(startY/PAD_SENSITIVE)
+        if (!(last_x == cal_x && last_y == cal_y)){
+            let points = {x:startX, y:startY}
+            lines[lines.length-1].push(points)
+            s+=1;
+            last_x = cal_x
+            last_y = cal_y
+        }
         
     } else if (packets.length==1 && isPainting){
         isPainting = false;
         console.log("end painting")
     } 
+    // console.log(lines)
     
 });
 
@@ -199,7 +193,12 @@ connection.on('event-from-arduino', function(data) {
 
 // #####################
 
-clear_speed_text = document.getElementById('clear_speed');
+clear_speed_text = monitor.document.getElementById('clear_speed');
+const pads = document.getElementsByClassName("drawPad");
+for (let i = 0; i < pads.length; i++){
+    pads[i].width = FRAME_SIZE-20;
+    pads[i].height = FRAME_SIZE-20;
+}
     
 function clamp(number, min, max) {
   return Math.max(min, Math.min(number, max));
@@ -213,7 +212,7 @@ function animate(timestamp) {
   drawLines();
   removeLines();
   removeMaxLines();
-    
+  // drawPads();
   requestAnimationFrame(animate);
 }
 
@@ -244,30 +243,77 @@ let speed = 0;
 let clear_amount = 0;
 let wait_amount = 0;
     
+// function removeLines(){
+    
+//     clamp_speed = clamp(clear_speed, 0, 800);
+//     speed = parseInt(scale(clamp_speed, 0, 1000, 0, 20));
+//     clear_speed_text.innerHTML = s + " " + speed
+//     if (speed > 11){
+//         clear_amount = speed - 11;
+//         if (s > clear_amount){
+//             if (lines[0].length>clear_amount){
+//                 lines[0].splice(0, clear_amount);
+//                 s -= clear_amount;
+//             } else {
+//                 if (lines.length > 1){
+//                     s -= lines[0].length;
+//                     lines.shift();
+//                 }
+//             }
+//         }
+//     } else if (speed > 10){ // speed == 11
+//         wait_amount = 3;
+//         clear_amount = 2;
+//         if (clear_count >= wait_amount){
+//             clear_count = 0;
+//             if (s >= 1){
+//                 if (lines[0].length>clear_amount){
+//                     lines[0].splice(0, clear_amount);
+//                     s -= clear_amount;
+//                 } else {
+//                     if (lines.length > 1){
+//                         s -= lines[0].length;
+//                         lines.shift();
+//                     }
+//                 }
+//             }
+//         } else {
+//             clear_count += 1;
+//         }
+    
+//     } else if (speed > 0) {
+//         wait_amount = 11 - speed;
+//         if (clear_count >= wait_amount){
+//             clear_count = 0;
+//             if (s >= 1){
+//                 if (lines[0].length>1){
+//                     lines[0].shift()
+//                 } else {
+//                     if (lines.length > 1){
+//                         lines.shift()
+//                     }
+//                 }
+//                 s -= 1;
+//             }
+//         } else {
+//             clear_count += 1;
+//         }
+//     }
+// }
+
 function removeLines(){
     
-    clamp_speed = clamp(clear_speed, 0, 800);
-    speed = parseInt(scale(clamp_speed, 0, 1000, 0, 20));
+    clamp_speed = clamp(clear_speed, 0, 1000);
+    speed = parseInt(scale(clamp_speed, 0, 1000, -5, 5));
     clear_speed_text.innerHTML = s + " " + speed
-    if (speed > 11){
-        clear_amount = speed - 11;
-        if (s > clear_amount){
-            if (lines[0].length>clear_amount){
-                lines[0].splice(0, clear_amount);
-                s -= clear_amount;
-            } else {
-                if (lines.length > 1){
-                    s -= lines[0].length;
-                    lines.shift();
-                }
-            }
-        }
-    } else if (speed > 10){ // speed == 11
+
+    if (speed == 4 || speed == -4){
         wait_amount = 3;
         clear_amount = 2;
         if (clear_count >= wait_amount){
             clear_count = 0;
-            if (s >= 1){
+            
+            if (s >= 1 && speed > 0){
                 if (lines[0].length>clear_amount){
                     lines[0].splice(0, clear_amount);
                     s -= clear_amount;
@@ -277,13 +323,23 @@ function removeLines(){
                         lines.shift();
                     }
                 }
+            } else if (s >= 1 && speed < 0){
+                let l = lines.length - 1
+                if (lines[l].length>clear_amount){
+                    lines[l].splice(lines[l].length-clear_amount, clear_amount);
+                    s -= clear_amount;
+                } else {
+                    if (l > 0){
+                        s -= lines[l].length;
+                        lines.pop();
+                    }
+                }
             }
         } else {
             clear_count += 1;
         }
-    
-    } else if (speed > 0) {
-        wait_amount = 11 - speed;
+    } else if (speed > 0 && speed < 4){
+        wait_amount = 5 - speed;
         if (clear_count >= wait_amount){
             clear_count = 0;
             if (s >= 1){
@@ -299,7 +355,53 @@ function removeLines(){
         } else {
             clear_count += 1;
         }
+    } else if (speed < 0 && speed > -4){
+        wait_amount = 5 + speed;
+        if (clear_count >= wait_amount){
+            clear_count = 0;
+            if (s >= 1){
+                let l = lines.length - 1
+                if (lines[l].length>1){
+                    lines[l].pop()
+                } else {
+                    if (l > 0){
+                        lines.pop()
+                    }
+                }
+                s -= 1;
+            }
+        } else {
+            clear_count += 1;
+        }
+    } else if (speed == 5){
+        clear_amount = 2;
+        if (s > clear_amount){
+            if (lines[0].length>clear_amount){
+                lines[0].splice(0, clear_amount);
+                s -= clear_amount;
+            } else {
+                if (lines.length > 1){
+                    s -= lines[0].length;
+                    lines.shift();
+                }
+            }
+        }
+    } else if (speed == -5){
+        clear_amount = 2;
+        if (s > clear_amount){
+            let l = lines.length - 1
+            if (lines[l].length>clear_amount){
+                lines[l].splice(lines[l].length-clear_amount, clear_amount);
+                s -= clear_amount;
+            } else {
+                if (l > 0){
+                    s -= lines[l].length;
+                    lines.pop();
+                }
+            }
+        }
     }
+
 }
     
 function removeMaxLines(){
@@ -315,53 +417,46 @@ function removeMaxLines(){
     }
 }
 
+function drawPads(){
+    for (let i = 0; i < pads.length; i++){
+        var swapContext = pads[i].getContext('2d');
+        swapContext.drawImage(canvas, -10, -10);
+    }
+    
+}
+    
 
 // #####################
 
-ctx.beginPath();
-ctx.moveTo(10,10);
-ctx.lineTo(10,10);
-ctx.strokeWidth = 5;
 
-ctx.closePath();
-ctx.stroke();
-    
-// ctx.beginPath();
-// ctx.moveTo(140,140);
-// ctx.lineTo(200,200);
-// ctx.closePath();
-// ctx.stroke();
-    
 function sendFrame() {
-    
-    // if (cur_input==0){
-    //   if (!is_pause){
-    //     ctx.drawImage(video,
-    //                   crop_factor/2*video.videoWidth,
-    //                   crop_factor/2*video.videoHeight,
-    //                   (1-crop_factor/2)*video.videoWidth,
-    //                   (1-crop_factor/2)*video.videoHeight,
-    //                   0,0,FRAME_SIZE_Y,FRAME_SIZE);
-    //   }
-    // } else if (cur_input==1) {
-    //   if (file_is_init){
-    //     ctx.drawImage(loadedImg,
-    //                   0,0,loadedImg.width,loadedImg.height,0,0,FRAME_SIZE_Y,FRAME_SIZE);
-    //   } else {
-    
-    //   }
-    // }
-    
     
     let dataURL = canvas.toDataURL('image/jpeg',input_quality);
     socket.emit('input_frame', dataURL);
-
+    if (playing){
+        socket.emit('recording', recording)
+        is_recording.style.color = 'black'
+        is_recording.innerHTML = 'playing'
+        // console.log('send osc')
+    } else if (recording){
+        socket.emit('recording', recording)
+        // console.log('send osc')
+        is_recording.style.color = 'black'
+        is_recording.innerHTML = 'recording'
+    } else {
+        is_recording.style.color = 'red'
+        is_recording.innerHTML = 'waiting'
+    }
 }
+
+    
 
 
 setInterval(function () {
   sendFrame();
+  drawPads();
 }, FRAME_RATE);
+
 
 
     

@@ -4,6 +4,11 @@ import threading
 from time import sleep
 from utils import base64_to_pil_image, pil_image_to_base64
 
+from pythonosc import udp_client
+
+ip="192.168.0.13"
+port=6448
+
 class Processor(object):
     def __init__(self, model_backend, quality = 0.75):
         self.quality = int(quality*100)
@@ -11,9 +16,13 @@ class Processor(object):
         self.to_output = []
         self.model_backend = model_backend
 
+        self.client = udp_client.SimpleUDPClient(ip, port)
+
         thread = threading.Thread(target=self.keep_processing, args=())
         thread.daemon = True
         thread.start()
+        
+        
 
     def process_one(self):
         if not self.to_process:
@@ -25,8 +34,8 @@ class Processor(object):
 
         ######## Calling the backend model ##########
         if input_img is not None:
-            z = self.model_backend(input_img)
-            output_str = z[0].tolist()
+            self.z = self.model_backend(input_img)
+            output_str = self.z[0].tolist()
             self.to_output.append(output_str)
 
         ######## Calling the backend model ##########
@@ -45,10 +54,17 @@ class Processor(object):
         self.to_process.append(input)
 
     def get_frame(self):
+        if (len(self.to_output) >= 2):
+            self.to_output = []
         while not self.to_output:
             # sleep(0.05)
             return 'not ready'
         return self.to_output.pop(0)
+
+    def send_osc(self):
+        # print(len(self.to_output))
+        self.client.send_message("/wek/inputs", self.z[0].tolist())
+
 
 class MyModel(object):
     def __init__(self):

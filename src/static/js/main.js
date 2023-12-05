@@ -212,12 +212,20 @@ function animate(timestamp) {
   drawLines();
   removeLines();
   removeMaxLines();
-  // drawPads();
   requestAnimationFrame(animate);
 }
 
 requestAnimationFrame(animate);
 
+
+// setInterval(function () {
+//   drawLines();
+//   removeLines();
+//   removeMaxLines();
+// }, 100);
+
+
+    
 function drawLines(){
     if (lines.length == 0){return;}
     ctx.fillRect(0, 0, FRAME_SIZE, FRAME_SIZE);

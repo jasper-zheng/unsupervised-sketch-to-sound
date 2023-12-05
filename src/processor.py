@@ -7,6 +7,7 @@ from utils import base64_to_pil_image, pil_image_to_base64
 from pythonosc import udp_client
 
 ip="192.168.0.13"
+# ip="192.168.0.100"
 port=6448
 
 class Processor(object):
@@ -17,6 +18,7 @@ class Processor(object):
         self.model_backend = model_backend
 
         self.client = udp_client.SimpleUDPClient(ip, port)
+        self.z = None
 
         thread = threading.Thread(target=self.keep_processing, args=())
         thread.daemon = True
@@ -63,7 +65,9 @@ class Processor(object):
 
     def send_osc(self):
         # print(len(self.to_output))
-        self.client.send_message("/wek/inputs", self.z[0].tolist())
+        if self.z is not None:
+            # print('send osc')
+            self.client.send_message("/wek/inputs", self.z[0].tolist())
 
 
 class MyModel(object):

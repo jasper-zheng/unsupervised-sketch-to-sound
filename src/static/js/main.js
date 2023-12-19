@@ -12,7 +12,7 @@ $(document).ready(function () {
   let crop_factor     = 0.2     // 0: no crop, 1: crop everything
   const input_quality = 0.5  // quality from client to server
   const FRAME_RATE    = 100   // ms per frame
-  const LINE_MAX_LEN  = 300
+  const LINE_MAX_LEN  = 150
   const LATENT_DIM    = 32
   const DISPLAY_LATENT= true;
   const PAD_SENSITIVE = 4;
@@ -21,8 +21,8 @@ $(document).ready(function () {
   let namespace = "/demo";
     
 
-const monitor = window.open("", "", "width=300,height=600");
-monitor.document.write('<html><head><style>body{background-color: #AAAAAA;font-family: Arial; font-size: 20px;}.latentBlocks{height:5px;width:100px;background-color: black;margin-top:3px}</style></head><body><canvas id="inputCanvas"></canvas><div id="clear_speed"></div><div id="is_recording">playing</div><button id="playSwitch">Run</button><div id="latent_display"></div></body></html>');
+const monitor = window.open("", "", "width=300,height=800");
+monitor.document.write('<html><head><style>body{background-color: #AAAAAA;font-family: Arial; font-size: 60px;}.latentBlocks{height:5px;width:100px;background-color: black;margin-top:3px}</style></head><body><canvas id="inputCanvas"></canvas><div id="clear_speed"></div><div id="is_recording">playing</div><button id="playSwitch">Run</button><div id="latent_display"></div></body></html>');
 
 
 let layer_names = document.querySelector("#layerNames");

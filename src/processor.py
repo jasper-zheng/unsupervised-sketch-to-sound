@@ -6,8 +6,9 @@ from utils import base64_to_pil_image, pil_image_to_base64
 
 from pythonosc import udp_client
 
-ip="192.168.0.13"
+# ip="192.168.0.13"
 # ip="192.168.0.100"
+ip = '127.0.0.1'
 port=6448
 
 class Processor(object):

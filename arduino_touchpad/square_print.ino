@@ -16,6 +16,7 @@ String sendStr = "";
 JSONVar event;
 
 const int potPin = A0;
+const int buttonPin = 10;
 
 void setup() {
   // Initialize serial communication
@@ -25,7 +26,7 @@ void setup() {
     Serial.println("failed to initialise trill square");
   }
   trillSquare.setMode(Trill::DIFF);
-
+  pinMode(buttonPin, INPUT);
   event[0] = "event-from-arduino";
 }
 
@@ -36,8 +37,6 @@ void loop() {
 
   delay(10);
   
-  // int sensorValue = analogRead(potPin);
-  // Serial.println(sensorValue); 
   trillSquare.requestRawData();
   if(trillSquare.rawDataAvailable() > 0) {
     printRawData(trillSquare);
@@ -134,7 +133,9 @@ void printRawData(Trill & trill) {
           }
         }
       }
-      
+      int buttonRead = digitalRead(buttonPin);
+
+      sendStr = String(sendStr + ":" + buttonRead);
       event[1] = sendStr;
       Serial.println(JSON.stringify(event));
       

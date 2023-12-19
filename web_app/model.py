@@ -15,8 +15,8 @@ from PIL import Image
 import yaml
 
 
-network_pkl = '/home/jasper/Documents/PhD/Y0/vae_sketch_to_sound/src/PyTorchVAE/logs/DFCVAE/version_8/checkpoints/last.ckpt'
-config_file = '/home/jasper/Documents/PhD/Y0/vae_sketch_to_sound/src/PyTorchVAE/configs/dfc_vae.yaml'
+network_pkl = './PyTorchVAE/logs/DFCVAE/version_8/checkpoints/last.ckpt'
+config_file = './PyTorchVAE/configs/dfc_vae.yaml'
 
 
 

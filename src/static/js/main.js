@@ -218,14 +218,6 @@ function animate(timestamp) {
 requestAnimationFrame(animate);
 
 
-// setInterval(function () {
-//   drawLines();
-//   removeLines();
-//   removeMaxLines();
-// }, 100);
-
-
-    
 function drawLines(){
     if (lines.length == 0){return;}
     ctx.fillRect(0, 0, FRAME_SIZE, FRAME_SIZE);
@@ -250,65 +242,8 @@ let clamp_speed = 0;
 let speed = 0;
 let clear_amount = 0;
 let wait_amount = 0;
-    
-// function removeLines(){
-    
-//     clamp_speed = clamp(clear_speed, 0, 800);
-//     speed = parseInt(scale(clamp_speed, 0, 1000, 0, 20));
-//     clear_speed_text.innerHTML = s + " " + speed
-//     if (speed > 11){
-//         clear_amount = speed - 11;
-//         if (s > clear_amount){
-//             if (lines[0].length>clear_amount){
-//                 lines[0].splice(0, clear_amount);
-//                 s -= clear_amount;
-//             } else {
-//                 if (lines.length > 1){
-//                     s -= lines[0].length;
-//                     lines.shift();
-//                 }
-//             }
-//         }
-//     } else if (speed > 10){ // speed == 11
-//         wait_amount = 3;
-//         clear_amount = 2;
-//         if (clear_count >= wait_amount){
-//             clear_count = 0;
-//             if (s >= 1){
-//                 if (lines[0].length>clear_amount){
-//                     lines[0].splice(0, clear_amount);
-//                     s -= clear_amount;
-//                 } else {
-//                     if (lines.length > 1){
-//                         s -= lines[0].length;
-//                         lines.shift();
-//                     }
-//                 }
-//             }
-//         } else {
-//             clear_count += 1;
-//         }
-    
-//     } else if (speed > 0) {
-//         wait_amount = 11 - speed;
-//         if (clear_count >= wait_amount){
-//             clear_count = 0;
-//             if (s >= 1){
-//                 if (lines[0].length>1){
-//                     lines[0].shift()
-//                 } else {
-//                     if (lines.length > 1){
-//                         lines.shift()
-//                     }
-//                 }
-//                 s -= 1;
-//             }
-//         } else {
-//             clear_count += 1;
-//         }
-//     }
-// }
 
+    
 function removeLines(){
     
     clamp_speed = clamp(clear_speed, 0, 1000);

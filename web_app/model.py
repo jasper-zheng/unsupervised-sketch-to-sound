@@ -57,6 +57,7 @@ class Pipeline(torch.nn.Module):
        img_tensor = torch.nn.functional.interpolate(img_tensor, size=(self.out_size,self.out_size), mode='bilinear',antialias=True)
        print(img_tensor.shape)
        mu, log_var = self.trained_model.encode(img_tensor)
+       self.zero_z = mu
        mu = mu.detach().cpu()
        # self.z = mu
        return mu
@@ -77,6 +78,7 @@ class Pipeline(torch.nn.Module):
        # print(f'{img.min()} {img.max()}')
        
        mu, log_var = self.trained_model.encode(img)
+       mu = mu - self.zero_z
        mu = torch.clamp(mu, min=-3, max=3)
        
        mu = mu.detach().cpu()

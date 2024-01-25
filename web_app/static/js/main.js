@@ -21,8 +21,8 @@ $(document).ready(function () {
   let namespace = "/demo";
     
 
-const monitor = window.open("", "", "width=300,height=800");
-monitor.document.write('<html><head><style>body{background-color: #AAAAAA;font-family: Arial; font-size: 60px;}.latentBlocks{height:5px;width:100px;background-color: black;margin-top:3px}</style></head><body><canvas id="inputCanvas"></canvas><div id="clear_speed"></div><div id="is_recording">playing</div><button id="playSwitch">Run</button><div id="latent_display"></div></body></html>');
+const monitor = window.open("", "", "width=580,height=305");
+monitor.document.write('<html><head><style>button{border-color:RGB(255,177,3);border: 2px solid;cursor:pointer}span{padding-left:10px}body{background-color: #AAAAAA;font-family: Arial; font-size: 13px;color:RGB(150,150,150)}table{font-size: 14px;}.bActive{background-color:RGB(255,177,3);color:black;border-color:RGB(255,177,3)}.bStanby{background-color:black;color:RGB(255,177,3);}.latentBlocks{height:5px;width:100px;background-color: black;margin-top:3.5px}</style></head><body><table><td><canvas id="inputCanvas"></canvas><div style="width:252px;background-color:black;padding:2px"><button class="bStanby" id="playSwitch" style="width:90px">Run</button><span>total</span><span id="total" style="display:inline;width:60px;color:RGB(255,177,3)"></span><span>clearing</span><span id="clear_speed" style="color:RGB(255,177,3)"></span></div></td><td><div id="latent_display"></div></td></table></body></html>');
 
 
 let layer_names = document.querySelector("#layerNames");
@@ -37,7 +37,7 @@ let is_pause = false
 
 latent = monitor.document.getElementById('latent');
 latent_display = monitor.document.getElementById('latent_display');
-is_recording = monitor.document.getElementById('is_recording');
+// is_recording = monitor.document.getElementById('is_recording');
     
 let latentBlocks = []
 for (let i = 0; i < LATENT_DIM; i++){
@@ -194,6 +194,7 @@ connection.on('event-from-arduino', function(data) {
 // #####################
 
 clear_speed_text = monitor.document.getElementById('clear_speed');
+total_text = monitor.document.getElementById('total');
 const pads = document.getElementsByClassName("drawPad");
 for (let i = 0; i < pads.length; i++){
     pads[i].width = FRAME_SIZE-20;
@@ -248,8 +249,8 @@ function removeLines(){
     
     clamp_speed = clamp(clear_speed, 0, 1000);
     speed = parseInt(scale(clamp_speed, 0, 1000, -5, 5));
-    clear_speed_text.innerHTML = s + " " + speed
-
+    clear_speed_text.innerHTML = speed
+    total_text.innerHTML = s
     if (speed == 4 || speed == -4){
         wait_amount = 3;
         clear_amount = 2;
@@ -378,17 +379,22 @@ function sendFrame() {
     socket.emit('input_frame', dataURL);
     if (playing){
         socket.emit('recording', recording)
-        is_recording.style.color = 'black'
-        is_recording.innerHTML = 'playing'
+        // is_recording.style.color = 'black'
+        // is_recording.innerHTML = 'playing'
+        play_switch.innerHTML = 'playing'
+        play_switch.className = 'bStanby'
         // console.log('send osc')
     } else if (recording){
         socket.emit('recording', recording)
         // console.log('send osc')
-        is_recording.style.color = 'black'
-        is_recording.innerHTML = 'recording'
+        // is_recording.style.color = 'black'
+        // is_recording.innerHTML = 'recording'
+        play_switch.innerHTML = 'recording'
     } else {
-        is_recording.style.color = 'red'
-        is_recording.innerHTML = 'waiting'
+        // is_recording.style.color = 'red'
+        // is_recording.innerHTML = 'waiting'
+        play_switch.innerHTML = 'waiting'
+        play_switch.className = 'bActive'
     }
 }
 

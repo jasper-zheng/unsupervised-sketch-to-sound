@@ -86,7 +86,7 @@ ctx.lineWidth = LINE_WIDTH;
 ctx.fillStyle = "black";
 ctx.strokeStyle = "white";
 ctx.fillRect(0, 0, FRAME_SIZE, FRAME_SIZE);
-let isPainting = false;
+let isDrawing = false;
 let startX;
 let startY;
 
@@ -133,14 +133,14 @@ connection.on('event-from-arduino', function(data) {
     // ##################
 
     
-    if (packets.length>1 && !isPainting){
+    if (packets.length>1 && !isDrawing){
         packet = packets[0].split(',')
-        isPainting = true;
+        isDrawing = true;
         console.log("starts painting " + packet)
         startX = parseInt(packet[0])
         startY = parseInt(packet[1])
         if (startX==0 || startY==0 || startX==PAD_MAX_WIDTH || startY==PAD_MAX_WIDTH){
-            isPainting = false;
+            isDrawing = false;
             console.log("end painting")
             return
         }
@@ -157,13 +157,13 @@ connection.on('event-from-arduino', function(data) {
         line.push(points)
         lines.push(line)
         s+=1;
-    } else if (packets.length>1 && isPainting){
+    } else if (packets.length>1 && isDrawing){
         packet = packets[0].split(',')
         startX = parseInt(packet[0])
         startY = parseInt(packet[1])
 
         if (startX==0 || startY==0 || startX==PAD_MAX_WIDTH || startY==PAD_MAX_WIDTH){
-            isPainting = false;
+            isDrawing = false;
             console.log("end painting")
             return
         }
@@ -180,13 +180,115 @@ connection.on('event-from-arduino', function(data) {
             last_y = cal_y
         }
         
-    } else if (packets.length==1 && isPainting){
-        isPainting = false;
+    } else if (packets.length==1 && isDrawing){
+        isDrawing = false;
         console.log("end painting")
     } 
     // console.log(lines)
     
 });
+
+canvas.addEventListener('mousedown', function(e) {
+    startX = e.offsetX;
+    startY = e.offsetY;
+    isDrawing = true;
+    console.log("starts painting ")
+    
+    last_x = startX
+    last_y = startY
+    let line = []
+    let points = {x:startX,y:startY}
+    line.push(points)
+    lines.push(line)
+    s+=1;
+});
+canvas.addEventListener('mousemove', function(e) {
+    if (isDrawing === true) {
+        // drawLine(context, startX, startY, e.offsetX, e.offsetY);
+        startX = e.offsetX;
+        startY = e.offsetY;
+        // console.log(e.offsetX + ", " + e.offsetY)
+
+        if (!(last_x == startX && last_y == startY)){
+            let points = {x:startX, y:startY}
+            lines[lines.length-1].push(points)
+            s+=1;
+            last_x = startX
+            last_y = startY
+        }
+    }
+});
+canvas.addEventListener('mouseup', function(e) {
+    // console.log("end painting")
+    if (isDrawing === true) {
+        // drawLine(context, startX, startY, e.offsetX, e.offsetY);
+        startX = 0;
+        startY = 0;
+        isDrawing = false;
+        console.log("end painting")
+    }
+});
+canvas.addEventListener('mouseout', function(e) {
+    // console.log("end painting")
+    if (isDrawing === true) {
+        // drawLine(context, startX, startY, e.offsetX, e.offsetY);
+        startX = 0;
+        startY = 0;
+        isDrawing = false;
+        console.log("end painting")
+    }
+});
+function collectLines(x,y){
+    
+    if (!isDrawing){
+        // packet = packets[0].split(',')
+        isDrawing = true;
+        console.log("starts painting " + packet)
+        startX = parseInt(packet[0])
+        startY = parseInt(packet[1])
+        if (startX==0 || startY==0 || startX==PAD_MAX_WIDTH || startY==PAD_MAX_WIDTH){
+            isDrawing = false;
+            console.log("end painting")
+            return
+        }
+        startX = startX*SCALE
+        startY = FRAME_SIZE - startY*SCALE
+
+        let cal_x = parseInt(startX/PAD_SENSITIVE)
+        let cal_y = parseInt(startY/PAD_SENSITIVE)
+        last_x = cal_x
+        last_y = cal_y
+        
+        let line = []
+        let points = {x:startX,y:startY}
+        line.push(points)
+        lines.push(line)
+        s+=1;
+    } else if (packets.length>1 && isDrawing){
+        packet = packets[0].split(',')
+        startX = parseInt(packet[0])
+        startY = parseInt(packet[1])
+
+        if (startX==0 || startY==0 || startX==PAD_MAX_WIDTH || startY==PAD_MAX_WIDTH){
+            isDrawing = false;
+            console.log("end painting")
+            return
+        }
+        startX = startX*SCALE
+        startY = FRAME_SIZE - startY*SCALE
+
+        let cal_x = parseInt(startX/PAD_SENSITIVE)
+        let cal_y = parseInt(startY/PAD_SENSITIVE)
+        if (!(last_x == cal_x && last_y == cal_y)){
+            let points = {x:startX, y:startY}
+            lines[lines.length-1].push(points)
+            s+=1;
+            last_x = cal_x
+            last_y = cal_y
+        }
+        
+    }
+}
 
 
 

@@ -21,7 +21,7 @@ socketio = SocketIO(app)
 
 quality = 0.75
 
-processor = Processor(Pipeline(), quality = quality)
+processor = Processor(Pipeline(has_model=False), quality = quality)
 
 @app.route('/')
 def index():

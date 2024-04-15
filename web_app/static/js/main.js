@@ -2,16 +2,25 @@
 $(document).ready(function () {
   const connection = SimpleWebSerial.setupSerialConnection({
     baudRate: 115200,
-    requestAccessOnPageLoad: true,
-    // logOutgoingSerialData: true
+    requestAccessOnPageLoad: false
   });
-  
+
+    const element = document.createElement("button");
+    element.innerText = "serial access";
+    document.body.append(element);
+
+
+    element.addEventListener('click', function() {
+        connection.startConnection(); // WORKS as it is in response to user interaction
+    });
+
+                             
   const FRAME_SIZE    = 256   // input frame size
   const PAD_MAX_WIDTH = 1792
   const LINE_WIDTH    = 1
   let crop_factor     = 0.2     // 0: no crop, 1: crop everything
   const input_quality = 0.5  // quality from client to server
-  const FRAME_RATE    = 100   // ms per frame
+  const FRAME_RATE    = 200   // ms per frame
   const LINE_MAX_LEN  = 150
   const LATENT_DIM    = 32
   const DISPLAY_LATENT= true;
@@ -22,77 +31,16 @@ $(document).ready(function () {
     
 
 const monitor = window.open("", "", "width=580,height=305");
-monitor.document.write('<html><head><style>button{border-color:RGB(255,177,3);border: 2px solid;cursor:pointer}span{padding-left:10px}body{background-color: #AAAAAA;font-family: Arial; font-size: 13px;color:RGB(150,150,150)}table{font-size: 14px;}.bActive{background-color:RGB(255,177,3);color:black;border-color:RGB(255,177,3)}.bStanby{background-color:black;color:RGB(255,177,3);}.latentBlocks{height:5px;width:100px;background-color: black;margin-top:3.5px}</style></head><body><table><td><canvas id="inputCanvas"></canvas><div style="width:252px;background-color:black;padding:2px"><button class="bStanby" id="playSwitch" style="width:90px">Run</button><span>total</span><span id="total" style="display:inline;width:60px;color:RGB(255,177,3)"></span><span>clearing</span><span id="clear_speed" style="color:RGB(255,177,3)"></span></div></td><td><div id="latent_display"></div></td></table></body></html>');
+monitor.document.write('<html><head><link rel="stylesheet" href="../static/css/style.css"></head><body><div class="display"><canvas class="drawPad"></div></body></html>');
 
-
-let layer_names = document.querySelector("#layerNames");
-let initialisation = false;
-let layer_selection = '';
-let layer_list = {};
-let cluster_numbers = {};
-
-let cur_input = 0  // 0: webcam, 1:file
-let file_is_init = false
-let is_pause = false
-
-latent = monitor.document.getElementById('latent');
-latent_display = monitor.document.getElementById('latent_display');
-// is_recording = monitor.document.getElementById('is_recording');
-    
-let latentBlocks = []
-for (let i = 0; i < LATENT_DIM; i++){
-    let latentBlock = document.createElement("div");
-    latentBlock.setAttribute("class", "latentBlocks");
-    latent_display.appendChild(latentBlock)
-    latentBlocks.push(latentBlock)
-}
-
-
-var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-
-
-socket.on('connect', function() {
-console.log('Connected!');
-});
-
-socket.on('processed_frame',function(data){
-    if (DISPLAY_LATENT){
-        for (let i = 0; i < LATENT_DIM; i++){
-            let w = data.latent_code[i]
-            latentBlocks[i].style.width = 100 + 33*w + 'px'
-            
-        }
-    }
-})
-
-
-
-
-// Send named events to the Arduino with a number, string, array or json object
-connection.send('event-to-arduino', "Hello there, Arduino");
-
-var count = 0;
 setInterval(function () {
     connection.send('event', "1");
-    // connection.sendData(12345);
-    count++;
 }, 20);
 
-const canvas = monitor.document.querySelector("#inputCanvas");
-canvas.width = FRAME_SIZE;
-canvas.height = FRAME_SIZE;
-const ctx = canvas.getContext('2d');
-ctx.lineWidth = LINE_WIDTH;
-ctx.fillStyle = "black";
-ctx.strokeStyle = "white";
-ctx.fillRect(0, 0, FRAME_SIZE, FRAME_SIZE);
 let isDrawing = false;
 let startX;
 let startY;
 
-
-    
-    
 if ("serial" in navigator) {
     console.log('support')
 // The Web Serial API is supported.
@@ -104,7 +52,15 @@ let s=0;
     
 let packet = []
 
-let clear_speed = 900;
+let clear_speed = 800;
+
+let clear_speed_input = document.getElementById('clear_speed_input');
+clear_speed_input.addEventListener('change', clearSpeedInput);
+function clearSpeedInput() {
+  clear_speed = this.value*100; 
+    console.log(this.value);
+}
+    
 let point_xy = ""
 let recording = 0;
 let playing = true
@@ -112,16 +68,10 @@ let playing = true
 let last_x = 0;
 let last_y = 0;
 
-play_switch = monitor.document.getElementById('playSwitch');
-    
-play_switch.addEventListener('click',(e)=>{
-    playing = !playing
-})
+
 
 // React to incoming events
 connection.on('event-from-arduino', function(data) {
-
-    // ################## add
     
     let str_messages = data.split(":")
     clear_speed = parseInt(str_messages[0])
@@ -130,9 +80,6 @@ connection.on('event-from-arduino', function(data) {
     
     packets = point_xy.split("_")
 
-    // ##################
-
-    
     if (packets.length>1 && !isDrawing){
         packet = packets[0].split(',')
         isDrawing = true;
@@ -179,14 +126,63 @@ connection.on('event-from-arduino', function(data) {
             last_x = cal_x
             last_y = cal_y
         }
-        
     } else if (packets.length==1 && isDrawing){
         isDrawing = false;
         console.log("end painting")
     } 
-    // console.log(lines)
-    
 });
+
+play_switch = document.getElementById('playSwitch');
+    
+play_switch.addEventListener('click',(e)=>{
+    playing = !playing
+})
+
+    
+// latent = document.getElementById('latent');
+// latent_display = document.getElementById('latent_display');
+    
+// let latentBlocks = []
+// for (let i = 0; i < LATENT_DIM; i++){
+//     let latentBlock = document.createElement("div");
+//     latentBlock.setAttribute("class", "latentBlocks");
+//     latent_display.appendChild(latentBlock)
+//     latentBlocks.push(latentBlock)
+// }
+
+
+
+
+
+
+    
+var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+socket.on('connect', function() {
+console.log('Connected!');
+});
+
+socket.on('processed_frame',function(data){
+    if (DISPLAY_LATENT){
+        for (let i = 0; i < LATENT_DIM; i++){
+            let w = data.latent_code[i]
+            latentBlocks[i].style.width = 100 + 33*w + 'px'
+        }
+    }
+})
+
+
+
+
+const canvas = document.querySelector("#inputCanvas");
+canvas.width = FRAME_SIZE;
+canvas.height = FRAME_SIZE;
+const ctx = canvas.getContext('2d');
+ctx.lineWidth = LINE_WIDTH;
+ctx.fillStyle = "black";
+ctx.strokeStyle = "white";
+ctx.fillRect(0, 0, FRAME_SIZE, FRAME_SIZE);
+
 
 canvas.addEventListener('mousedown', function(e) {
     startX = e.offsetX;
@@ -238,66 +234,16 @@ canvas.addEventListener('mouseout', function(e) {
         console.log("end painting")
     }
 });
-function collectLines(x,y){
-    
-    if (!isDrawing){
-        // packet = packets[0].split(',')
-        isDrawing = true;
-        console.log("starts painting " + packet)
-        startX = parseInt(packet[0])
-        startY = parseInt(packet[1])
-        if (startX==0 || startY==0 || startX==PAD_MAX_WIDTH || startY==PAD_MAX_WIDTH){
-            isDrawing = false;
-            console.log("end painting")
-            return
-        }
-        startX = startX*SCALE
-        startY = FRAME_SIZE - startY*SCALE
 
-        let cal_x = parseInt(startX/PAD_SENSITIVE)
-        let cal_y = parseInt(startY/PAD_SENSITIVE)
-        last_x = cal_x
-        last_y = cal_y
-        
-        let line = []
-        let points = {x:startX,y:startY}
-        line.push(points)
-        lines.push(line)
-        s+=1;
-    } else if (packets.length>1 && isDrawing){
-        packet = packets[0].split(',')
-        startX = parseInt(packet[0])
-        startY = parseInt(packet[1])
-
-        if (startX==0 || startY==0 || startX==PAD_MAX_WIDTH || startY==PAD_MAX_WIDTH){
-            isDrawing = false;
-            console.log("end painting")
-            return
-        }
-        startX = startX*SCALE
-        startY = FRAME_SIZE - startY*SCALE
-
-        let cal_x = parseInt(startX/PAD_SENSITIVE)
-        let cal_y = parseInt(startY/PAD_SENSITIVE)
-        if (!(last_x == cal_x && last_y == cal_y)){
-            let points = {x:startX, y:startY}
-            lines[lines.length-1].push(points)
-            s+=1;
-            last_x = cal_x
-            last_y = cal_y
-        }
-        
-    }
-}
 
 
 
 
 // #####################
 
-clear_speed_text = monitor.document.getElementById('clear_speed');
-total_text = monitor.document.getElementById('total');
-const pads = document.getElementsByClassName("drawPad");
+// clear_speed_text = document.getElementById('clear_speed');
+total_text = document.getElementById('total');
+const pads = monitor.document.getElementsByClassName("drawPad");
 for (let i = 0; i < pads.length; i++){
     pads[i].width = FRAME_SIZE-20;
     pads[i].height = FRAME_SIZE-20;
@@ -342,23 +288,21 @@ function drawLines(){
 
 let clear_count = 0;
 let clamp_speed = 0;
-let speed = 4;
+let speed = 3;
 let clear_amount = 0;
 let wait_amount = 0;
 
     
 function removeLines(){
-    
     clamp_speed = clamp(clear_speed, 0, 1000);
     speed = parseInt(scale(clamp_speed, 0, 1000, -5, 5));
-    clear_speed_text.innerHTML = speed
+    // clear_speed_text.innerHTML = speed
     total_text.innerHTML = s
     if (speed == 4 || speed == -4){
         wait_amount = 3;
         clear_amount = 2;
         if (clear_count >= wait_amount){
             clear_count = 0;
-            
             if (s >= 1 && speed > 0){
                 if (lines[0].length>clear_amount){
                     lines[0].splice(0, clear_amount);
@@ -447,11 +391,11 @@ function removeLines(){
             }
         }
     }
-
 }
     
 function removeMaxLines(){
     if (s >=LINE_MAX_LEN){
+        console.log('ji')
         if (lines[0].length>1){
             lines[0].shift()
         } else {

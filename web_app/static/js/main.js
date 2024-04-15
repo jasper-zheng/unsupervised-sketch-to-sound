@@ -104,7 +104,7 @@ let s=0;
     
 let packet = []
 
-let clear_speed = 512;
+let clear_speed = 900;
 let point_xy = ""
 let recording = 0;
 let playing = true
@@ -342,7 +342,7 @@ function drawLines(){
 
 let clear_count = 0;
 let clamp_speed = 0;
-let speed = 0;
+let speed = 4;
 let clear_amount = 0;
 let wait_amount = 0;
 
